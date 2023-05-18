@@ -20,11 +20,6 @@ public:
 	LPPL(string opp, int cycle = 500, double PopulationSize = 200, double Generations = 700, double pricegyration = 0)		//생성자
 		:outputpath(opp), cycle(cycle), PopulationSize(PopulationSize), Generations(700), pricegyration(pricegyration) {
 	}
-	
-
-	bool input(string filename) {
-
-	}
 
 	bool lppl() {
 		fp = fopen(string(outputpath+"\\pricedata.csv").c_str(), "r");
@@ -69,8 +64,20 @@ public:
 		if (pricegyration == 1) {
 			fp = fopen(string(outputpath + "\\INITIALVALUE_table.csv").c_str(), "r");
 
-			vector<vector<double>> ip_table;		//무슨 값이 들어가는 건지 모르겠음
-			vector<vector<double>> ip;			//마찬가지
+			vector<vector<double>> ip;
+			i = 0;
+			fgets(buff, 1024, fp);
+			while (!feof(fp)) {					//데이터 입력 부분
+				fgets(buff, 1024, fp);
+				parse = strtok(buff, ",");
+				while (parse != NULL) {
+					parse = strtok(NULL, ",");
+					ip[i].push_back(atof(parse));
+				}
+				i++;
+			}
+			fclose(fp);
+
 			G = {};
 
 			for (int i_run = 1; i <= cycle; i++) {
@@ -126,26 +133,16 @@ public:
 
 			}
 
-			//67행
-			if (ip_cycle_raw[1] == *new vector<double>(8, 0)) {
-				if (G.size() > 1) {			//size랑 매트랩 lenght랑 완전히 똑같은지 확인해봐야 할 듯
-					//array2table을 C++로 구현하는게 관건인듯
+			//출력부(67~91행) table로 변환하는거 없이 바로 LPPL에 넣어버림
+			fp = fopen(string(outputpath + "\\LPPL_table.csv").c_str(), "w");
+			fprintf(fp, "A,B,Tc,beta,C,Omega,Phi,RMSE\n");
+			for (int i = 0; i < G.size(); i++) {
+				for (int j = 0; j < G[i].size(); j++) {
+					fwrite(&G[i][j], sizeof(double), 1, fp);
+					fprintf(fp, ",");
 				}
-				else {
-					//여기도 마찬가지로 arry2table을 C++로 구현해야함
-				}
+				fprintf(fp, "\n");
 			}
-			else {//똑같은 코든데 왜 if로 나눠 놓은건지...?
-
-				if (G.size() > 1) {			//size랑 매트랩 lenght랑 완전히 똑같은지 확인해봐야 할 듯
-					//array2table을 C++로 구현하는게 관건인듯
-				}
-				else {
-					//여기도 마찬가지로 arry2table을 C++로 구현해야함
-				}
-			}
-			//출력부인듯... 일단 보류
-			//writetable(LPPL_table, outputpath + "\" +'LPPL_table.xlsx');
 		}
 
 		//92행
@@ -166,23 +163,18 @@ public:
 					continue;
 				//G[i_run] = { G0,RMSE };	//G에 정확히 뭘 집어넣으라는 건지 모르겠다
 			}
-			if (G.size() > 1) {			//size랑 매트랩 lenght랑 완전히 똑같은지 확인해봐야 할 듯
-					//array2table을 C++로 구현하는게 관건인듯
+
+			fp = fopen(string(outputpath + "\\LPPL_table.csv").c_str(), "w");
+			fprintf(fp, "A,B,Tc,beta,C,Omega,Phi,RMSE,\n");
+			for (int i = 0; i < G.size(); i++) {
+				for (int j = 0; j < G[i].size(); j++) {
+					fwrite(&G[i][j], sizeof(double), 1, fp);
+					fprintf(fp, ",");
+				}
+				fprintf(fp, "\n");
 			}
-			else {
-				//여기도 마찬가지로 arry2table을 C++로 구현해야함
-			}
-			//writetable(LPPL_table, outputpath + "\" +'LPPL_table.xlsx');
 		}
 		return true;
 	}
 
 };
-
-int main() {
-	string path = "C:\\Users\\USER\\OneDrive\\바탕 화면";
-	LPPL test(path);
-	test.lppl();
-
-	return 0;
-}
