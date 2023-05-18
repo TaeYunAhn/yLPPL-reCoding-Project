@@ -5,9 +5,9 @@
 using namespace std;
 
 struct date {
-	int year;
-	int month;
-	int day;
+	string year;
+	string month;
+	string day;
 
 };
 
@@ -30,7 +30,7 @@ public:
 
 	bool preprocess() {
 		fp = fopen(string(File).c_str(), "r");
-		vector<char[11]> text(100);
+		vector<string> text;
 		vector<double> num_raw;
 		char buff[1024];
 		char* parse;
@@ -41,7 +41,7 @@ public:
 			fgets(buff, 1024, fp);
 			parse = strtok(buff, ",");
 			while (parse != NULL) {
-				strcpy(text[i], parse);
+				text.push_back(parse);
 				i++;
 				parse = strtok(NULL, ",");
 				num_raw.push_back(atof(parse));
@@ -51,10 +51,10 @@ public:
 			}
 		}
 
-		vector<char[11]> DateStrings_raw = text;	//text랑 DateStrings_raw같은거?
+		vector<string> DateStrings_raw = text;	//text랑 DateStrings_raw같은거?
 
 		vector<double> num;
-		vector<char[11]> DateStrings;
+		vector<string> DateStrings;
 
 		if (startday == "nothing") {
 			num = num_raw;
@@ -62,15 +62,21 @@ public:
 		}
 		else {
 			int startpoint;
-			for (startpoint = 0; strcmp(DateStrings_raw[startpoint], string(startday).c_str()); startpoint++);
-			vector<char[11]> temp(DateStrings_raw.begin() + startpoint, DateStrings_raw.end());
+			for (startpoint = 0; DateStrings_raw[i] != startday; startpoint++);
+			vector<string> temp(DateStrings_raw.begin() + startpoint, DateStrings_raw.end());
 			DateStrings = temp;
 			vector<double> temp2(num_raw.begin() + startpoint, num_raw.end());
 			num = temp2;
 		}
 
 		//원본 34행
-
+		vector<date> t;
+		for (int i = 0; i < DateStrings.size(); i++) {
+			string year = DateStrings[i].substr(0,4);
+			string month = DateStrings[i].substr(5, 2);
+			string day = DateStrings[i].substr(8, 2);
+			t.push_back({ year,month,day });
+		}
 		
 	}
 
