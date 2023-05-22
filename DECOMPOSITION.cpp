@@ -6,6 +6,11 @@
 #include <cstring>
 #include <algorithm>
 
+#include "tools/global.h"
+#include "tools/logger.h"
+
+constexpr int FIT_FACTOR = 7;
+
 struct LPPLResult {
     double tc;
     double alpha;
@@ -15,46 +20,76 @@ struct LPPLResult {
 struct TableData {
     std::vector<double> date;
     std::vector<double> price;
+
+    void add(const std::pair<double, double>& data)
+    {
+        date.push_back(data.first);
+        price.push_back(data.second);
+    }
 };
 
 TableData readTableData(const std::string& filepath) {
-    TableData tableData;
-    std::ifstream file(filepath);
-    std::string line;
+    try
+    {
+        TableData tableData;
+        std::ifstream file(filepath);
+        std::string line;
 
-    // Skip the header line
-    std::getline(file, line);
+        // Skip the header line
+        std::getline(file, line);
 
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string value;
-        std::vector<double> row;
+        while (std::getline(file, line))
+        {
+            std::stringstream ss(line);
+            std::string value;
+            std::pair<double, double> row = (0.0, 0.0);  // date, price
 
-        while (std::getline(ss, value, ',')) {
-            row.push_back(std::stod(value));
+            int idx = 0;
+            while (std::getline(ss, value, ','))
+            {
+                idx++;
+                if (idx == 1)
+                    row.first = std::stod(value);
+
+                if (idx == 2)
+                    row.second = std::stod(value);
+            }
+
+            if ( idx != 2 || EQ0(row.first) || EQ0(row.second))
+            {
+                // line size error, value error
+                continue;
+            }
+
+            tableData.add(row);
         }
 
-        tableData.date.push_back(row[0]);
-        tableData.price.push_back(row[1]);
+        file.close();
+        return tableData;
     }
-
-    file.close();
-    return tableData;
+    catch(const std::exception& e)
+    {
+        printf("Exception Error => %s", e.what());
+        //LOG_ERROR(Logger::getInstance(), "Exception Error => %s", e.what());
+        return TableData();
+    }
 }
 
+
 LPPLResult findBestFit(const std::vector<std::vector<double>>& table) {
-    double minVal = table[0][7];
+    double minVal = table[0][FIT_FACTOR];
     int bestFitIndex = 0;
 
-    for (int i = 1; i < table.size(); i++) {
-        if (table[i][7] < minVal) {
-            minVal = table[i][7];
-            bestFitIndex = i;
+    for (int FIT_NUM = 1; FIT_NUM < table.size(); FIT_NUM++)
+    {
+        if (table[FIT_NUM][FIT_FACTOR] < minVal) {
+            minVal = table[FIT_NUM][FIT_FACTOR];
+            bestFitIndex = FIT_NUM;
         }
     }
 
     LPPLResult bestFit;
-    bestFit.tc = table[bestFitIndex][2];
+    bestFit.tc = table[bestFitIndex][2];    //TODO: remove magic number
     bestFit.alpha = 1 - table[bestFitIndex][3];
     bestFit.omega = table[bestFitIndex][5];
     return bestFit;

@@ -1,83 +1,66 @@
 #include <iostream>
 #include <vector>
-#include <cstring>
+#include "PREPROCESS_function.h"
 
 using namespace std;
+date PREPROCESS::datetime(string day)
+{ // dayï¿½ï¿½ dateÅ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²Ù´ï¿½ ï¿½Ô¼ï¿½
+}
 
-struct date {
-	string year;
-	string month;
-	string day;
+bool PREPROCESS::preprocess()
+{
+    auto fp = fopen(string(File).c_str(), "r");
+    vector<string> text;
+    vector<double> num_raw;
+    char buff[1024];
+    char *parse;
 
-};
+    fgets(buff, 1024, fp);
+    while (!feof(fp))
+    { // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½ ï¿½Îºï¿½
+        fgets(buff, 1024, fp);
+        parse = strtok(buff, ",");
+        while (parse != NULL)
+        {
+            text.push_back(parse);
+            parse = strtok(NULL, ",");
+            num_raw.push_back(atof(parse));
+            while (parse != NULL)
+            {
+                parse = strtok(NULL, ",");
+            }
+        }
+    }
 
-class PREPROCESS {
-private:
-	string File;
-	string outputpath;
-	string startday;
-	int rightdays;
-	double rightscale;
-	int Tradingday;
-	FILE* fp;
-public:
-	PREPROCESS(string File, string outputpath, string startday = "nothing", int rightdyas = 60, double rightscale = 0.20, int Tradingday = 252)
-		:File(File), outputpath(outputpath),startday(startday),rightdays(rightdays),rightscale(rightscale), Tradingday(Tradingday){}
+    vector<string> DateStrings_raw;
+    DateStrings_raw.assign(text.begin(), text.end()); // textï¿½ï¿½ DateStrings_rawï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?
 
-	date datetime(string day) {		//day¸¦ dateÅ¸ÀÔÀ¸·Î ¹Ù²Ù´Â ÇÔ¼ö
+    vector<double> num;
+    vector<string> DateStrings;
 
-	}
+    if (startday == "nothing")
+    {
+        num.assign(num_raw.begin(), num_raw.end());
+        DateStrings = DateStrings_raw;  //TODO: assign
+    }
+    else
+    {
+        for (int startpoint = 0; DateStrings_raw[i] != startday; startpoint++)
+        {
+            vector<string> temp(DateStrings_raw.begin() + startpoint, DateStrings_raw.end());
+            DateStrings = temp;
+            vector<double> temp2(num_raw.begin() + startpoint, num_raw.end());
+            num = temp2;
+        }
+    }
 
-	bool preprocess() {
-		fp = fopen(string(File).c_str(), "r");
-		vector<string> text;
-		vector<double> num_raw;
-		char buff[1024];
-		char* parse;
-		int i = 0;
-
-		fgets(buff, 1024, fp);
-		while (!feof(fp)) {					//µ¥ÀÌÅÍ ÀÔ·Â ºÎºÐ
-			fgets(buff, 1024, fp);
-			parse = strtok(buff, ",");
-			while (parse != NULL) {
-				text.push_back(parse);
-				i++;
-				parse = strtok(NULL, ",");
-				num_raw.push_back(atof(parse));
-				while (parse != NULL) {
-					parse = strtok(NULL, ",");
-				}
-			}
-		}
-
-		vector<string> DateStrings_raw = text;	//text¶û DateStrings_raw°°Àº°Å?
-
-		vector<double> num;
-		vector<string> DateStrings;
-
-		if (startday == "nothing") {
-			num = num_raw;
-			DateStrings = DateStrings_raw;
-		}
-		else {
-			int startpoint;
-			for (startpoint = 0; DateStrings_raw[i] != startday; startpoint++);
-			vector<string> temp(DateStrings_raw.begin() + startpoint, DateStrings_raw.end());
-			DateStrings = temp;
-			vector<double> temp2(num_raw.begin() + startpoint, num_raw.end());
-			num = temp2;
-		}
-
-		//¿øº» 34Çà
-		vector<date> t;
-		for (int i = 0; i < DateStrings.size(); i++) {
-			string year = DateStrings[i].substr(0,4);
-			string month = DateStrings[i].substr(5, 2);
-			string day = DateStrings[i].substr(8, 2);
-			t.push_back({ year,month,day });
-		}
-		
-	}
-
-};
+    // ï¿½ï¿½ï¿½ï¿½ 34ï¿½ï¿½
+    vector<date> t;
+    for ( const auto& date : DateStrings)
+    {
+        string year = date.substr(0, 4);
+        string month = date.substr(5, 2);
+        string day = date.substr(8, 2);
+        t.push_back({year, month, day});
+    }
+}

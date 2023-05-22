@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 
+#include "tools/global.h"
 struct LPPLResult {
     double a1, a2, a3, a4, a5, a6, a7, a8;
 };
@@ -14,10 +15,13 @@ struct PriceData {
     std::vector<double> price;
 };
 
-struct RelativeErrorResult {
-    std::vector<double> date;
-    std::vector<double> relativeError;
+struct RelativeErrorData
+{
+    double date;
+    double relativeError;
 };
+
+using RelativeErrorResult = std::vector<RelativeErrorData>;
 
 LPPLResult findBestFit(const std::vector<LPPLResult>& results) {
     auto bestFit = std::min_element(results.begin(), results.end(), [](const LPPLResult& r1, const LPPLResult& r2) {
@@ -28,26 +32,25 @@ LPPLResult findBestFit(const std::vector<LPPLResult>& results) {
 
 void calculateRelativeError(const LPPLResult& bestFit, const PriceData& priceData, RelativeErrorResult& result) {
     int n = priceData.date.size();
-    result.date = priceData.date;
-    result.relativeError.resize(n);
+    result.resize(n);
 
     for (int i = 0; i < n; ++i) {
         double x = priceData.date[i];
         double y = priceData.price[i];
         double Y = bestFit.a1 + (bestFit.a2 * pow(bestFit.a3 - x, bestFit.a4)) * (1 + bestFit.a5 * cos(bestFit.a6 * log(bestFit.a3 - x) + bestFit.a7));
         double e = Y - y;
-        double re = e / y;
-        result.relativeError[i] = re;
+        result.relativeError[i] = SAFE_DIV(e, y);
     }
 }
 
 void saveRelativeErrorTable(const RelativeErrorResult& result, const std::string& outputpath) {
     std::ofstream file(outputpath + "/RELATIVEERROR_table.csv");
     file << "Datetime,Relative Error\n";
-    int n = result.date.size();
-    for (int i = 0; i < n; ++i) {
-        file << result.date[i] << "," << result.relativeError[i] << "\n";
+
+    for ( const auto& res : result) {
+        file << res.date << "," << res.relativeError << "\n";
     }
+
     file.close();
 }
 
@@ -58,12 +61,16 @@ int main() {
     std::ifstream lpplFile(outputpath + "/LPPL_table.csv");
     std::vector<LPPLResult> lpplResults;
     std::string line;
-    std::getline(lpplFile, line);  // Skip header
+    int count = 0;
     while (std::getline(lpplFile, line)) {
+        if (count == 0)
+            continue;
+
         std::istringstream iss(line);
         LPPLResult result;
         iss >> result.a1 >> result.a2 >> result.a3 >> result.a4 >> result.a5 >> result.a6 >> result.a7 >> result.a8;
         lpplResults.push_back(result);
+        count++;
     }
     lpplFile.close();
 

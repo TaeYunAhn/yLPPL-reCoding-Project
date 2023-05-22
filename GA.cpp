@@ -2,6 +2,9 @@
 #include <vector>
 #include <random>
 
+#include "tools/global.h"
+#include "tools/logger.h"
+
 // 개체 표현 방식에 맞는 구조체 정의
 struct Individual {
     // 개체의 유전자 정보를 저장하는 변수들
@@ -12,11 +15,17 @@ struct Individual {
 
     // 개체의 적합도를 저장하는 변수
     double fitness;
+
+    void print()
+    {
+        std::cout << param1 << ", " << param2 << ", fitness: " << fitness << std::endl;
+    }
 };
 
 // 초기 개체 집합 생성 함수
 std::vector<Individual> initializePopulation(int populationSize) {
     std::vector<Individual> population;
+    population.reserve(populationSize);
 
     // populationSize만큼의 초기 개체를 생성하고 무작위로 초기화하는 로직을 구현
 
@@ -27,8 +36,21 @@ std::vector<Individual> initializePopulation(int populationSize) {
 double calculateFitness(const Individual& individual) {
     // LPPL 함수를 사용하여 개체의 적합도를 계산하는 로직을 구현
     // 개체의 파라미터를 LPPL 함수에 전달하고, LPPL 함수의 결과와 실제 데이터를 비교하여 적합도를 계산
-
+    
     return 0.0; // 개체의 적합도 값 반환
+}
+
+// 적합도 함수 정의2
+bool calculateFitness2(Individual &individual)
+{
+    // LPPL 함수를 사용하여 개체의 적합도를 계산하는 로직을 구현
+    // 개체의 파라미터를 LPPL 함수에 전달하고, LPPL 함수의 결과와 실제 데이터를 비교하여 적합도를 계산
+    double val = -1.0;
+    if ( val < 0)
+        return false;
+
+    individual.fitness = val;
+    return true; // 개체의 적합도 값 반환
 }
 
 // 선택 연산 함수
@@ -63,7 +85,8 @@ void runGA(int populationSize, int generations) {
     for (int gen = 0; gen < generations; gen++) {
         // 적합도 계산
         for (Individual& individual : population) {
-            individual.fitness = calculateFitness(individual);
+            if ( !calculateFitness2(individual) ) 
+                // LOG_ERROR(Logger::getInstance(), "Fail to CalcFitness Error");
         }
 
         // 새로운 세대 생성
@@ -79,22 +102,34 @@ void runGA(int populationSize, int generations) {
             // 돌연변이
             mutate(child);
 
+            // if ( )
+            //     continue;
+
             // 새로운 세대에 추가
             newPopulation.push_back(child);
         }
 
         // 세대 갱신
-        population = newPopulation;
+        population.clear();
+        population.assign(newPopulation.begin(), newPopulation.end());
     }
 
     // 최적해 출력 또는 사용
-    Individual bestIndividual = population[0];
-    for (const Individual& individual : population) {
-        if (individual.fitness > bestIndividual.fitness) {
-            bestIndividual = individual;
+    if (!population.empty())
+    {
+        Individual bestIndividual = population[0];
+        for (const Individual &individual : population)
+        {
+            if (individual.fitness > bestIndividual.fitness)
+            {
+                bestIndividual = individual;
+            }
         }
+
+        std::cout << "Best individual: ";
+        bestIndividual.print();
     }
-    std::cout << "Best individual: " << bestIndividual.param1 << ", " << bestIndividual.param2 << ", fitness: " << bestIndividual.fitness << std::endl;
+    
 }
 
 int main() {
