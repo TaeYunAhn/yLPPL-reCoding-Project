@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 
 using namespace std;
@@ -7,6 +8,8 @@ struct date
     string year;
     string month;
     string day;
+    bool operator!=(date Date);
+    bool operator==(date Date);
 };
 
 class PREPROCESS
@@ -26,4 +29,6 @@ public:
     date datetime(string day);
 
     bool preprocess();
+
+    void id_SRTPT(vector<date> MatDate, vector<double> price, int& SRTPT, vector<date>& DATE_CRASH);
 };
