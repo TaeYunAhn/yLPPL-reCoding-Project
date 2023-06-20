@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <vector>
 #include <cmath>
 #include <algorithm>
@@ -5,6 +6,7 @@
 #include "LPPL_function.h"
 
 #include "tools/global.h"
+#include <string>
 
 using namespace std;
 
@@ -12,13 +14,14 @@ bool LPPL::lppl()
 {
     try
     {
-        FILE *fp = fopen(string(outputpath + "\\pricedata.csv").c_str(), "r");
+        FILE* fp = fopen(string(outputpath + "\\pricedata.csv").c_str(), "r");
         vector<char[11]> date;
         date.reserve(100);
 
         vector<double> price;
+        price.reserve(100);
         char buff[1024];
-        char *parse = nullptr;
+        char* parse = nullptr;
         int i = 0;
 
         fgets(buff, 1024, fp);
@@ -43,26 +46,28 @@ bool LPPL::lppl()
         Matrix ip_cycle;
         Matrix ip_cycle_raw;
         vector<double> T;
-
-        vector<double> lb = {*max_element(T.begin(), T.end()), DBL_MIN, (double)T.size(), 0.1, -1, 4.8, 0};
-        vector<double> ub = {DBL_MAX, 0, DBL_MAX, 0.9, 1, 13, 2 * M_PI};
+        vector<double> lb = { *max_element(T.begin(), T.end()), DBL_MIN, (double)T.size(), 0.1, -1, 4.8, 0 };
+        vector<double> ub = { DBL_MAX, 0, DBL_MAX, 0.9, 1, 13, 2 * M_PI };
 
         // price log?? ????(20??)
         vector<double> logPrice;
-        for (const auto& p : price)
+        logPrice.reserve(price.size());
+        for (const auto& p : price) {
             logPrice.push_back(log(p));
+        }
 
         fclose(fp);
 
         if (pricegyration == 1)
         {
-            FILE *fp_initValue = fopen(string(outputpath + "\\INITIALVALUE_table.csv").c_str(), "r");
+            FILE* fp_initValue = fopen(string(outputpath + "\\INITIALVALUE_table.csv").c_str(), "r");
 
             Matrix ip;
             fgets(buff, 1024, fp);
             while (!feof(fp))
             { //?????? ??? ?��?
                 vector<double> d;
+                d.reserve(10);      //매직넘버를 정확히 모르겠어서...
                 fgets(buff, 1024, fp);
                 parse = strtok(buff, ",");
                 while (parse != NULL)
@@ -79,13 +84,17 @@ bool LPPL::lppl()
             for (int i_run = 1; i <= cycle; i++)
             {
                 ip_cycle = {};
+                ip_cycle_raw.reserve(ip.size());
                 //????? ????? ????
                 for (int i = ((i_run - 1) * populationSize); i < i_run * populationSize; i++)
                 {
+                    
                     ip_cycle_raw.push_back(ip[i]);
                 }
 
                 vector<double> v(8, 0);
+                ip_cycle.reserve(ip_cycle_raw.size());
+
                 for (int ip_cycle_lin = 1; ip_cycle_lin <= populationSize; ip_cycle_lin++)
                 {
                     if (!EQVEC(ip_cycle_raw[ip_cycle_lin], v))
@@ -184,11 +193,11 @@ bool LPPL::lppl()
         }
         return true;
     }
-    catch(const std::exception& e)
+    catch (const std::exception& e)
     {
         // std::cerr << e.what() << '\n';
         // LOG_ERROR(Logger::getInstance(), "Exception Error => %s", e.what());
     }
-    
-   
+
+
 }

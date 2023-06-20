@@ -107,7 +107,7 @@ bool PREPROCESS::preprocess()
 	fp = fopen(string(outputpath + "\\pricedata.csv").c_str(), "w");
 	fprintf(fp, "data,price,\n");
 	for (int i = 0; i < Date.size(); i++) {
-		fprintf(fp,"%s,%d,\n", Date[i],Price[i]);
+		fprintf(fp,"%s,%f,\n", Date[i],Price[i]);
 	}
 	fclose(fp);
 }
@@ -172,7 +172,7 @@ void PREPROCESS::id_SRTPT(vector<date> MatDate, vector<double> price, int& SRTPT
 	}
 	//186มู
 	date CT;
-	int id_crash, I;
+	int id_crash{}, I;
 	double M;
 	if (new_DATE_CRASH.size() > 0) {
 		int idx = new_DATE_CRASH.size();
